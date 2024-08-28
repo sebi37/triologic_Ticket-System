@@ -7,8 +7,10 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
 
 public class SupportTicketSystemGUI extends JFrame {
     private TicketSystem ticketSystem;
@@ -42,6 +44,7 @@ public class SupportTicketSystemGUI extends JFrame {
                 Ticket selectedTicket = ticketList.getSelectedValue();
                 if (selectedTicket != null) {
                     StringBuilder details = new StringBuilder(selectedTicket.getDescription());
+                    details.append("\n\nContent:\n").append(selectedTicket.getContent());
                     details.append("\n\nAttachments:\n");
                     for (String attachment : selectedTicket.getAttachments()) {
                         details.append(attachment).append("\n");
@@ -80,7 +83,7 @@ public class SupportTicketSystemGUI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 String description = JOptionPane.showInputDialog("Enter ticket description:");
                 if (description != null) {
-                    ticketSystem.createTicket(description);
+                    ticketSystem.createTicket(description, "", new ArrayList<>());
                     updateTicketList();
                 }
             }

@@ -1,4 +1,5 @@
 import java.util.Map;
+import java.util.ArrayList;
 
 public class WebFormReceiver {
     private TicketSystem ticketSystem;
@@ -12,8 +13,8 @@ public class WebFormReceiver {
         String content = formData.get("content");
 
         if (subject != null && !subject.isEmpty()) {
-            String ticketDescription = "Subject: " + subject + "\nContent: " + content;
-            ticketSystem.createTicket(ticketDescription);
+            String ticketDescription = "Subject: " + subject;
+            ticketSystem.createTicket(ticketDescription, content, new ArrayList<>());
         } else {
             System.out.println("Form submission is missing a subject.");
         }

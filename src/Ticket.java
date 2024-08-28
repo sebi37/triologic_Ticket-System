@@ -5,12 +5,14 @@ public class Ticket implements Serializable {
     private static int idCounter = 1;
     private int id;
     private String description;
+    private String content;
     private boolean closed;
     private List<String> attachments;
 
-    public Ticket(String description, List<String> attachments) {
+    public Ticket(String description, String content, List<String> attachments) {
         this.id = idCounter++;
         this.description = description;
+        this.content = content;
         this.closed = false;
         this.attachments = attachments;
     }
@@ -21,6 +23,10 @@ public class Ticket implements Serializable {
 
     public String getDescription() {
         return description;
+    }
+
+    public String getContent() {
+        return content;
     }
 
     public boolean isClosed() {
@@ -41,6 +47,6 @@ public class Ticket implements Serializable {
 
     @Override
     public String toString() {
-        return "Ticket ID: " + id + ", Description: " + description + ", Closed: " + closed;
+        return "Ticket ID: " + id + ", Description: " + description + ", Status: " + (closed ? "Closed" : "Open");
     }
 }

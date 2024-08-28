@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.ArrayList;
 
 public class SupportTicketSystem {
     public static void main(String[] args) {
@@ -28,7 +29,7 @@ public class SupportTicketSystem {
                 case 1:
                     System.out.print("Enter ticket description: ");
                     String description = scanner.nextLine();
-                    ticketSystem.createTicket(description);
+                    ticketSystem.createTicket(description, "", new ArrayList<>());
                     break;
                 case 2:
                     ticketSystem.showTickets();

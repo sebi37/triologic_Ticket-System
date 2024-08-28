@@ -52,8 +52,8 @@ public class EmailReceiver {
                     }
 
                     if (subject != null && subject.contains("Ticket")) {
-                        String ticketDescription = "Subject: " + subject + "\nContent: " + contentString;
-                        ticketSystem.createTicket(ticketDescription, attachments);
+                        String ticketDescription = "Subject: " + subject;
+                        ticketSystem.createTicket(ticketDescription, contentString, attachments);
                     }
                 }
             }

@@ -1,3 +1,4 @@
+import javax.mail.MessagingException;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -133,7 +134,11 @@ public class SupportTicketSystemGUI extends JFrame {
         checkEmailsButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                emailReceiver.checkEmails(ticketSystem);
+                try {
+                    emailReceiver.checkEmails(ticketSystem);
+                } catch (MessagingException ex) {
+                    throw new RuntimeException(ex);
+                }
                 updateTicketList();
             }
         });

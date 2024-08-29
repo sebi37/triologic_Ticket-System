@@ -2,6 +2,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.Arrays;
+import java.util.Comparator;
 import javax.mail.*;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
@@ -20,7 +22,7 @@ public class EmailReceiver {
         this.password = password;
     }
 
-    public void checkEmails(TicketSystem ticketSystem) {
+    public void checkEmails(TicketSystem ticketSystem) throws MessagingException {
         Properties properties = new Properties();
         properties.put("mail.store.protocol", "imaps");
 
@@ -33,6 +35,14 @@ public class EmailReceiver {
             emailFolder.open(Folder.READ_ONLY);
 
             Message[] messages = emailFolder.getMessages();
+            Arrays.sort(messages, Comparator.comparing(message -> {
+                try {
+                    return message.getReceivedDate();
+                } catch (MessagingException e) {
+                    throw new RuntimeException(e);
+                }
+            }));
+
             for (Message message : messages) {
                 if (message instanceof MimeMessage) {
                     MimeMessage mimeMessage = (MimeMessage) message;

@@ -1,5 +1,4 @@
-import java.io.IOException;
-import java.io.Serializable;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,10 +38,14 @@ public class TicketSystem implements Serializable {
     }
 
     public void saveTickets(String filename) throws IOException {
-        // Implement save logic
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filename))) {
+            oos.writeObject(tickets);
+        }
     }
 
     public void loadTickets(String filename) throws IOException, ClassNotFoundException {
-        // Implement load logic
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filename))) {
+            tickets = (List<Ticket>) ois.readObject();
+        }
     }
 }

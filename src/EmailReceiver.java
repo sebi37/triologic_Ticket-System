@@ -1,5 +1,9 @@
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.Properties;
 import javax.mail.*;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import java.util.ArrayList;
@@ -33,6 +37,7 @@ public class EmailReceiver {
                 if (message instanceof MimeMessage) {
                     MimeMessage mimeMessage = (MimeMessage) message;
                     String subject = mimeMessage.getSubject();
+                    System.out.println("Processing email with subject: " + subject); // Debug statement
                     Object content = mimeMessage.getContent();
                     String contentString = "";
                     List<String> attachments = new ArrayList<>();
@@ -44,17 +49,36 @@ public class EmailReceiver {
                         for (int i = 0; i < multipart.getCount(); i++) {
                             BodyPart bodyPart = multipart.getBodyPart(i);
                             if (bodyPart.isMimeType("text/plain")) {
-                                contentString = bodyPart.getContent().toString();
+                                contentString += bodyPart.getContent().toString();
                             } else if (Part.ATTACHMENT.equalsIgnoreCase(bodyPart.getDisposition())) {
-                                attachments.add(bodyPart.getFileName());
+                                MimeBodyPart mimeBodyPart = (MimeBodyPart) bodyPart;
+                                String fileName = mimeBodyPart.getFileName();
+                                try {
+                                    File attachmentsDir = new File("attachments");
+                                    if (!attachmentsDir.exists()) {
+                                        attachmentsDir.mkdir();
+                                    }
+                                    InputStream is = mimeBodyPart.getInputStream();
+                                    File file = new File(attachmentsDir, fileName);
+                                    FileOutputStream fos = new FileOutputStream(file);
+                                    byte[] buf = new byte[4096];
+                                    int bytesRead;
+                                    while ((bytesRead = is.read(buf)) != -1) {
+                                        fos.write(buf, 0, bytesRead);
+                                    }
+                                    fos.close();
+                                    attachments.add(file.getAbsolutePath());
+                                } catch (Exception e) {
+                                    System.out.println("Failed to save attachment: " + fileName);
+                                    e.printStackTrace();
+                                }
                             }
                         }
                     }
 
-                    if (subject != null && subject.contains("Ticket")) {
-                        String ticketDescription = "Subject: " + subject;
-                        ticketSystem.createTicket(ticketDescription, contentString, attachments);
-                    }
+                    System.out.println("Creating ticket for email with subject: " + subject); // Debug statement
+                    String ticketDescription = "Subject: " + subject;
+                    ticketSystem.createTicket(ticketDescription, contentString, attachments);
                 }
             }
 

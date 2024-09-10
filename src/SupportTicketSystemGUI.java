@@ -1,3 +1,4 @@
+import javax.imageio.ImageIO;
 import javax.mail.MessagingException;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -5,12 +6,16 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class SupportTicketSystemGUI extends JFrame {
     private TicketSystem ticketSystem;
@@ -19,6 +24,9 @@ public class SupportTicketSystemGUI extends JFrame {
     private JList<Ticket> ticketList;
     private DefaultListModel<Ticket> ticketListModel;
     private JTextArea ticketDetails;
+    private JPanel attachmentsPanel;
+    private JPanel buttonPanel;
+    private boolean isDarkMode = false;
 
     public SupportTicketSystemGUI() {
         ticketSystem = new TicketSystem();
@@ -50,6 +58,7 @@ public class SupportTicketSystemGUI extends JFrame {
                         details.append(attachment).append("\n");
                     }
                     ticketDetails.setText(details.toString());
+                    displayAttachments(selectedTicket);
                 }
             }
         });
@@ -64,9 +73,32 @@ public class SupportTicketSystemGUI extends JFrame {
         detailsScrollPane.setBorder(BorderFactory.createTitledBorder("Ticket Details"));
         add(detailsScrollPane, BorderLayout.CENTER);
 
-        JPanel buttonPanel = new JPanel();
+        // Initialize attachmentsPanel
+        attachmentsPanel = new JPanel();
+        attachmentsPanel.setLayout(new GridLayout(0, 1)); // One column layout
+
+        // Create a JScrollPane for attachmentsPanel
+        JScrollPane attachmentsScrollPane = new JScrollPane(attachmentsPanel);
+        attachmentsScrollPane.setBorder(BorderFactory.createTitledBorder("Attachments"));
+        attachmentsScrollPane.setPreferredSize(new Dimension(800, 150)); // Decrease the height to 150
+
+        // Add the JScrollPane to the main frame
+        add(attachmentsScrollPane, BorderLayout.SOUTH);
+
+        // Adjust the ticket details scroll pane size
+        detailsScrollPane.setPreferredSize(new Dimension(800, 200)); // Decrease the height to 200
+
+        // Initialize buttonPanel
+        buttonPanel = new JPanel();
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
-        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Create a JScrollPane for buttonPanel
+        JScrollPane buttonScrollPane = new JScrollPane(buttonPanel);
+        buttonScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        buttonScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+        // Add the JScrollPane to the main frame
+        add(buttonScrollPane, BorderLayout.EAST);
 
         JButton createTicketButton = new JButton("Create Ticket");
         JButton showTicketsButton = new JButton("Show Tickets");
@@ -77,6 +109,7 @@ public class SupportTicketSystemGUI extends JFrame {
         JButton simulateFormButton = new JButton("Simulate Form Submission");
         JButton deleteClosedTicketsButton = new JButton("Delete Closed Tickets");
         JButton exitButton = new JButton("Exit");
+        JButton toggleDarkModeButton = new JButton("Toggle Dark Mode");
 
         createTicketButton.addActionListener(new ActionListener() {
             @Override
@@ -166,6 +199,14 @@ public class SupportTicketSystemGUI extends JFrame {
             }
         });
 
+        toggleDarkModeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                isDarkMode = !isDarkMode;
+                applyColorScheme();
+            }
+        });
+
         buttonPanel.add(createTicketButton);
         buttonPanel.add(Box.createVerticalStrut(5));
         buttonPanel.add(showTicketsButton);
@@ -182,14 +223,16 @@ public class SupportTicketSystemGUI extends JFrame {
         buttonPanel.add(Box.createVerticalStrut(5));
         buttonPanel.add(deleteClosedTicketsButton);
         buttonPanel.add(Box.createVerticalStrut(5));
+        buttonPanel.add(toggleDarkModeButton);
+        buttonPanel.add(Box.createVerticalStrut(5));
         buttonPanel.add(exitButton);
-
-        add(buttonPanel, BorderLayout.EAST);
 
         // Redirect System.out to JTextArea
         PrintStream printStream = new PrintStream(new CustomOutputStream(consoleOutput));
         System.setOut(printStream);
         System.setErr(printStream);
+
+        applyColorScheme();
     }
 
     private void simulateFormSubmission(TicketSystem ticketSystem) {
@@ -212,6 +255,123 @@ public class SupportTicketSystemGUI extends JFrame {
         for (Ticket ticket : ticketSystem.getTickets()) {
             ticketListModel.addElement(ticket);
         }
+    }
+
+    private void displayAttachments(Ticket ticket) {
+        attachmentsPanel.removeAll(); // Alte Anhänge entfernen
+        Set<String> displayedAttachments = new HashSet<>(); // Set zum Verfolgen der angezeigten Anhänge
+        for (String filePath : ticket.getAttachments()) {
+            if (!displayedAttachments.contains(filePath)) {
+                new ImageLoaderWorker(filePath).execute();
+                displayedAttachments.add(filePath);
+            }
+        }
+        attachmentsPanel.revalidate();
+        attachmentsPanel.repaint();
+    }
+
+    private class ImageLoaderWorker extends SwingWorker<ImageIcon, Void> {
+        private String filePath;
+
+        public ImageLoaderWorker(String filePath) {
+            this.filePath = filePath;
+        }
+
+        @Override
+        protected ImageIcon doInBackground() throws Exception {
+            File file = new File(filePath);
+            if (file.exists() && isImageFile(file)) {
+                BufferedImage img = ImageIO.read(file);
+                Image scaledImg = ImageUtils.getScaledImage(img, ImageUtils.MAX_WIDTH, ImageUtils.MAX_HEIGHT);
+                return new ImageIcon(scaledImg);
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        protected void done() {
+            try {
+                ImageIcon icon = get();
+                if (icon != null) {
+                    JPanel attachmentPanel = new JPanel(new BorderLayout());
+                    JLabel imgLabel = new JLabel(icon);
+                    attachmentPanel.add(imgLabel, BorderLayout.CENTER);
+
+                    JButton openButton = new JButton("Open");
+                    openButton.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            showImageInNewFrame(icon.getImage());
+                        }
+                    });
+                    attachmentPanel.add(openButton, BorderLayout.SOUTH);
+
+                    attachmentsPanel.add(attachmentPanel);
+                } else {
+                    JLabel fileLabel = new JLabel(filePath);
+                    attachmentsPanel.add(fileLabel);
+                }
+            } catch (Exception e) {
+                JLabel errorLabel = new JLabel("Error loading attachment: " + filePath);
+                attachmentsPanel.add(errorLabel);
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void showImageInNewFrame(Image img) {
+        JFrame frame = new JFrame("Image Viewer");
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setSize(800, 600);
+        JLabel imgLabel = new JLabel(new ImageIcon(img));
+        frame.add(new JScrollPane(imgLabel), BorderLayout.CENTER);
+
+        JButton closeButton = new JButton("Close");
+        closeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                frame.dispose();
+            }
+        });
+        frame.add(closeButton, BorderLayout.SOUTH);
+
+        frame.setVisible(true);
+    }
+
+    private boolean isImageFile(File file) {
+        String[] imageExtensions = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"};
+        for (String ext : imageExtensions) {
+            if (file.getName().toLowerCase().endsWith(ext)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void applyColorScheme() {
+        Color background = isDarkMode ? ColorScheme.DARK_BACKGROUND : ColorScheme.LIGHT_BACKGROUND;
+        Color foreground = isDarkMode ? ColorScheme.DARK_FOREGROUND : ColorScheme.LIGHT_FOREGROUND;
+
+        getContentPane().setBackground(background);
+        consoleOutput.setBackground(background);
+        consoleOutput.setForeground(foreground);
+        ticketList.setBackground(background);
+        ticketList.setForeground(foreground);
+        ticketDetails.setBackground(background);
+        ticketDetails.setForeground(foreground);
+        attachmentsPanel.setBackground(background);
+
+        // Apply to all buttons
+        for (Component component : buttonPanel.getComponents()) {
+            if (component instanceof JButton) {
+                component.setBackground(background);
+                component.setForeground(foreground);
+            }
+        }
+
+        // Repaint the frame to apply changes
+        repaint();
     }
 
     public static void main(String[] args) {

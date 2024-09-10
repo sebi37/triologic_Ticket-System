@@ -1,4 +1,5 @@
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Ticket implements Serializable {
@@ -14,7 +15,7 @@ public class Ticket implements Serializable {
         this.description = description;
         this.content = content;
         this.closed = false;
-        this.attachments = attachments;
+        this.attachments = attachments != null ? attachments : new ArrayList<>();
     }
 
     public int getId() {
@@ -29,6 +30,10 @@ public class Ticket implements Serializable {
         return content;
     }
 
+    public void setContent(String content) {
+        this.content = content;
+    }
+
     public boolean isClosed() {
         return closed;
     }
@@ -39,6 +44,10 @@ public class Ticket implements Serializable {
 
     public List<String> getAttachments() {
         return attachments;
+    }
+
+    public void addAttachment(String filePath) {
+        attachments.add(filePath);
     }
 
     public static void setIdCounter(int idCounter) {

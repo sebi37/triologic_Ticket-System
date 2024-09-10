@@ -80,7 +80,7 @@ public class SupportTicketSystemGUI extends JFrame {
         // Create a JScrollPane for attachmentsPanel
         JScrollPane attachmentsScrollPane = new JScrollPane(attachmentsPanel);
         attachmentsScrollPane.setBorder(BorderFactory.createTitledBorder("Attachments"));
-        attachmentsScrollPane.setPreferredSize(new Dimension(800, 150)); // Decrease the height to 150
+        attachmentsScrollPane.setPreferredSize(new Dimension(800, 200)); // Decrease the height to 150
 
         // Add the JScrollPane to the main frame
         add(attachmentsScrollPane, BorderLayout.SOUTH);
@@ -266,8 +266,13 @@ public class SupportTicketSystemGUI extends JFrame {
                 displayedAttachments.add(filePath);
             }
         }
-        attachmentsPanel.revalidate();
-        attachmentsPanel.repaint();
+
+        // Verwende SwingUtilities, um sicherzustellen, dass die Aktualisierung im EDT erfolgt
+        SwingUtilities.invokeLater(() -> {
+            attachmentsPanel.revalidate();  // Stellt sicher, dass das Layout neu berechnet wird
+            attachmentsPanel.repaint();     // Erzwingt das Neuzeichnen des Panels
+            validate();                     // Stellt sicher, dass das Layout des gesamten Fensters neu berechnet wird
+        });
     }
 
     private class ImageLoaderWorker extends SwingWorker<ImageIcon, Void> {
@@ -307,14 +312,27 @@ public class SupportTicketSystemGUI extends JFrame {
                     });
                     attachmentPanel.add(openButton, BorderLayout.SOUTH);
 
-                    attachmentsPanel.add(attachmentPanel);
+                    // Füge die Komponenten im EDT hinzu
+                    SwingUtilities.invokeLater(() -> {
+                        attachmentsPanel.add(attachmentPanel);
+                        attachmentsPanel.revalidate();
+                        attachmentsPanel.repaint();
+                    });
                 } else {
                     JLabel fileLabel = new JLabel(filePath);
-                    attachmentsPanel.add(fileLabel);
+                    SwingUtilities.invokeLater(() -> {
+                        attachmentsPanel.add(fileLabel);
+                        attachmentsPanel.revalidate();
+                        attachmentsPanel.repaint();
+                    });
                 }
             } catch (Exception e) {
                 JLabel errorLabel = new JLabel("Error loading attachment: " + filePath);
-                attachmentsPanel.add(errorLabel);
+                SwingUtilities.invokeLater(() -> {
+                    attachmentsPanel.add(errorLabel);
+                    attachmentsPanel.revalidate();
+                    attachmentsPanel.repaint();
+                });
                 e.printStackTrace();
             }
         }

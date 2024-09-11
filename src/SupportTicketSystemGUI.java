@@ -116,8 +116,11 @@ public class SupportTicketSystemGUI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 String description = JOptionPane.showInputDialog("Enter ticket description:");
                 if (description != null) {
-                    ticketSystem.createTicket(description, "", new ArrayList<>());
-                    updateTicketList();
+                    String senderEmail = JOptionPane.showInputDialog("Enter sender email:");
+                    if (senderEmail != null) {
+                        ticketSystem.createTicket(description, "", new ArrayList<>(), senderEmail);
+                        updateTicketList();
+                    }
                 }
             }
         });

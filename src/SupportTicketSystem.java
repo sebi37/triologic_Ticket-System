@@ -30,7 +30,7 @@ public class SupportTicketSystem {
                 case 1:
                     System.out.print("Enter ticket description: ");
                     String description = scanner.nextLine();
-                    ticketSystem.createTicket(description, "", new ArrayList<>());
+                    ticketSystem.createTicket(description, "", new ArrayList<>(), "default@example.com");
                     break;
                 case 2:
                     ticketSystem.showTickets();

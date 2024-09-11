@@ -83,7 +83,8 @@ public class EmailReceiver {
                         }
 
                         String ticketDescription = "Subject: " + subject;
-                        ticketSystem.createTicket(ticketDescription, contentString, attachments);
+                        String senderEmail = mimeMessage.getFrom()[0].toString(); // Extract sender email
+                        ticketSystem.createTicket(ticketDescription, contentString, attachments, senderEmail);
                     }
                 }
             }

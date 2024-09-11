@@ -9,8 +9,8 @@ public class TicketSystem implements Serializable {
         tickets = new ArrayList<>();
     }
 
-    public void createTicket(String description, String content, List<String> attachments) {
-        Ticket ticket = new Ticket(description, content, attachments);
+    public void createTicket(String description, String content, List<String> attachments, String senderEmail) {
+        Ticket ticket = new Ticket(description, content, attachments, senderEmail);
         tickets.add(ticket);
     }
 
